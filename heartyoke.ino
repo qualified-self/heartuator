@@ -82,7 +82,7 @@ void setup() {
 #endif
 
   Serial.println("Initializing...");
-  current = new LeftRight(coils, 120); //Heartbeat(coils, 120);
+  current = new Random(coils, 50); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
 }
 
 // ANIMATION ////////////////////////////////////////////////////////////
