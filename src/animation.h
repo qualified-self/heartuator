@@ -246,3 +246,38 @@ public:
 };
 
 
+// /////////////////////////////////////////////////////////////////////////////////
+class Random : public Animation {
+public:
+  int _index;
+  int _prev;
+  int _metronome;
+  unsigned long _lastUpdate;
+
+  Random(int *coils, int interval) : Animation(coils), _metronome(interval) {
+    _index = 0;
+  }
+
+  void update() {
+    // sometimes this seems to happen: [__=___]
+    // @TODO are we getting indexes out of range?
+    clear();
+    _prev = _index;
+    _index = random(0, COILS);
+
+    _coils[_index] = 1;
+    _coils[_prev]  = 2;
+
+    _lastUpdate = millis();
+  }
+
+  virtual void reset() { 
+    _finished = false; 
+  }
+
+  bool ready() {
+    return (!_finished) && (millis() > (_lastUpdate + _metronome));
+  }
+};
+
+
