@@ -35,11 +35,19 @@ Animation *current = NULL;
 
 
 // INIT /////////////////////////////////////////////////////////////
+/*
 void init_flappy_board() {
   pinMode(latchPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
 
+  flapUp = false;
+  lastFlapUp = millis();
+}
+*/
+
+void init_animator() {
+  // needed for animator
   flapUp = false;
   lastFlapUp = millis();
 }
@@ -76,13 +84,14 @@ void setup() {
     while( !Serial ) {} // wait for serial init
 
     init_flappy_board();
+    init_animator();
 
 #ifdef __BUILD_FEATHER__
     init_wifi();
 #endif
 
   Serial.println("Initializing...");
-  current = new Random(coils, 50); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
+  current = new Flutter(coils, 1000); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
 }
 
 // ANIMATION ////////////////////////////////////////////////////////////
@@ -127,19 +136,19 @@ void on_coil(OSCMessage &msg, int addrOffset) {
 
 // beat the flap
 void on_beat_single(OSCMessage &msg, int addrOffset) {
-  if( msg.isInt(0) ) {
-    coil = msg.getInt(0);
-  }
-
-  Serial.print("beating flap #");
-  Serial.println(coil);
-
-  registerWrite(coil, HIGH);
-  flapUp = true;
-  lastFlapUp = millis();
-  delay( beats[beatidx % 3] ); //beatTime );
-  beatidx++;
-  registerWrite(coil, LOW);
+//  if( msg.isInt(0) ) {
+//    coil = msg.getInt(0);
+//  }
+//
+//  Serial.print("beating flap #");
+//  Serial.println(coil);
+//
+//  registerWrite(coil, HIGH);
+//  flapUp = true;
+//  lastFlapUp = millis();
+//  delay( beats[beatidx % 3] ); //beatTime );
+//  beatidx++;
+//  registerWrite(coil, LOW);
 }
 
 void osc_message_pump() {
@@ -200,3 +209,6 @@ void loop() {
   osc_message_pump();
 #endif
 } // loop()
+
+
+
