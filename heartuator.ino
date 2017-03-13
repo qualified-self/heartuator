@@ -54,7 +54,6 @@ void init_animator() {
 
 #ifdef __BUILD_FEATHER__
 void init_wifi() {
-/*  
   Serial.println();
   Serial.println();
   Serial.print("Connecting to ");
@@ -75,7 +74,6 @@ void init_wifi() {
   Udp.begin(localPort);
   Serial.print("Local port: ");
   Serial.println(Udp.localPort());
-*/
 }
 #endif
 
@@ -131,26 +129,26 @@ void on_scene_3(OSCMessage &msg, int addrOffset) {
 void on_scene_4(OSCMessage &msg, int addrOffset) {
 }
 
-void on_coil(OSCMessage &msg, int addrOffset) {
-}
-
-// beat the flap
 void on_beat_single(OSCMessage &msg, int addrOffset) {
-//  if( msg.isInt(0) ) {
-//    coil = msg.getInt(0);
-//  }
-//
-//  Serial.print("beating flap #");
-//  Serial.println(coil);
-//
-//  registerWrite(coil, HIGH);
-//  flapUp = true;
-//  lastFlapUp = millis();
-//  delay( beats[beatidx % 3] ); //beatTime );
-//  beatidx++;
-//  registerWrite(coil, LOW);
 }
 
+void on_coil(OSCMessage &msg, int addrOffset) {
+  if( msg.isInt(0) ) {
+    coil = msg.getInt(0);
+  }
+
+  Serial.print("beating flap #");
+  Serial.println(coil);
+
+  coil_write(coil, KICK_OUT);
+  flapUp = true;
+  lastFlapUp = millis();
+  delay( beats[beatidx % 3] ); //beatTime );
+  beatidx++;
+  coil_write(coil, INACTIVE);
+}
+
+// //////////////////////////////////////////////////////////////
 void osc_message_pump() {
   OSCMessage in;
   int size;
@@ -188,11 +186,11 @@ void loop() {
 //    out.empty();
     //delay(5);
 
-//    if( (flapUp == true)
-//      && ((millis() - lastFlapUp) > beatTime) ) {
-//      registerWrite(coil, LOW);
-//      flapUp = false;
-//    }
+   if( (flapUp == true)
+     && ((millis() - lastFlapUp) > beatTime) ) {
+     coil_write(coil, INACTIVE);
+     flapUp = false;
+   }
 
   // update animation sequence
   animation_loop();
@@ -209,6 +207,3 @@ void loop() {
   osc_message_pump();
 #endif
 } // loop()
-
-
-

@@ -1,25 +1,42 @@
-// shift regs
-const int dataPin = 12;
-const int latchPin = 14;
-const int clockPin = 13;
+#define PCB_ULN2003
 
+// shift regs
+const int dataPin = 13;
+const int latchPin = 14;
+const int clockPin = 12;
+
+#ifdef PCB_L298
 enum STATES {
   INACTIVE = 0,
   KICK_OUT = 1,
   KICK_IN = 2
 };
+#endif
+
+#ifdef PCB_ULN2003
+enum STATES {
+  INACTIVE = 0,
+  KICK_OUT = 1,
+  KICK_IN = 0
+};
+#endif
 
 const int COILS = 6;
 int coils[COILS] = {0, 0, 0, 0, 0, 0};
 
+#ifdef PCB_L298
+#define coil_write coil_write_l298
+#else PCB_ULN2003
+#define coil_write coil_write_uln2003
+#endif
 
-const int REGISTER_COUNT = 2;
+const int REGISTER_COUNT = 1;
 byte registerState[REGISTER_COUNT];
 
 
 void regWrite(int p, bool state) {
   // write to shift register specific pin
-  int reg = p >> 3; //  / 8;  1000 -> 0001
+  int reg = p  / 8;  //1000 -> 0001
   int actualPin = p - (8 * reg);
   digitalWrite(latchPin, LOW);
   for (int i = 0; i < REGISTER_COUNT; i++) {
@@ -50,76 +67,76 @@ void init_flappy_board() {
   }
 }
 
-// srwrite(int srn, int p, int state)
-/*
-void loop(void)           
-{
-  regWrite(3,HIGH); 
-  regWrite(2, HIGH);
-  regWrite(4,LOW);
-  delay(5000);
-  regWrite(2,LOW);
-  regWrite(4,HIGH);
-  delay(5000);
+void coil_write_uln2003(int coil_id, int state) {
+  regWrite(coil_id,state);
 }
-*/
 
-void coil_write(int coil_id, int state){
-  int dir_0_pin;
-  int dir_1_pin;
-  int onoff_pin;
-  int dir;
-  int onoff;
-  
- if((coil_id % 2) == 0) { // even
-    dir_0_pin = (coil_id*8)+2;
-    dir_1_pin = (coil_id*8)+4;
-    onoff_pin = (coil_id*8)+3;
- }else if((coil_id % 2) == 1){ // odd
-    dir_0_pin = (coil_id*8)+5;
-    dir_1_pin = (coil_id*8)+7;
-    onoff_pin = (coil_id*8)+6;
- }
- if(state == 0) {
-  onoff = 0;
- }
- else if(state == 1){
-  onoff = 1;
-  dir = 0;
- }
- else if(state == 2){
-  onoff = 1;
-  dir = 1;
- }
-  regWrite(onoff_pin, onoff); 
+
+/// @param coil_id coil number, starting at 0
+void coil_write_l298(int coil_id, int state){
+  int dir_0_pin, dir_1_pin, onoff_pin, dir, onoff;
+
+  int sreg = coil_id >> 1; // divide by 2 to get SR address
+  if ((coil_id % 2) == 0) { // use coil nr. to find choose offsets
+      dir_0_pin = (sr*8)+2; // offsets for even coils
+      dir_1_pin = (sr*8)+4;
+      onoff_pin = (sr*8)+3;
+  } else {
+      dir_0_pin = (sr*8)+5; // offsets for odd coils
+      dir_1_pin = (sr*8)+7;
+      onoff_pin = (sr*8)+6;
+  }
+
+ // get h-bridge pin values
+ switch( state ) {
+  case INACTIVE:
+    onoff = 0;
+    break;
+  case KICK_OUT:
+    onoff = 1;
+    dir = 0;
+    break;
+  case KICK_IN:
+    onoff = 1;
+    dir = 1;
+    break;
+ } // case state
+
+  regWrite(onoff_pin, onoff);
   regWrite(dir_0_pin, dir);
   regWrite(dir_1_pin, !dir);
 }
 
-
 /*
-// //////////////////////////////////////////////////////////////////////
-void registerWrite(int whichPin, int whichState) {
-// the bits you want to send
-  byte bitsToSend = 0;
+// @BUGGY
+void coil_write_l298(int coil_id, int state){
+  int dir_0_pin, dir_1_pin, onoff_pin, dir, onoff;
 
-  // turn off the output so the pins don't light up
-  // while you're shifting bits:
-  digitalWrite(latchPin, LOW);
+  if((coil_id % 2) == 0) { // even
+     dir_0_pin = (coil_id*8)+2;
+     dir_1_pin = (coil_id*8)+4;
+     onoff_pin = (coil_id*8)+3;
+  }else if((coil_id % 2) == 1){ // odd
+     dir_0_pin = (coil_id*8)+5;
+     dir_1_pin = (coil_id*8)+7;
+     onoff_pin = (coil_id*8)+6;
+  }
 
-  // turn on the next highest bit in bitsToSend:
-  bitWrite(bitsToSend, whichPin, whichState);
+  if(state == 0) {
+   onoff = 0;
+  }
+  else if(state == 1){
+   onoff = 1;
+   dir = 0;
+  }
+  else if(state == 2){
+   onoff = 1;
+   dir = 1;
+  }
 
-  // shift the bits out:
-  shiftOut(dataPin, clockPin, MSBFIRST, bitsToSend);
-
-    // turn on the output so the LEDs can light up:
-  digitalWrite(latchPin, HIGH);
-}
-
-
-void pumpcoil(int id, int state) {
-  // TODO integrate Jelle's function
+  regWrite(onoff_pin, onoff);
+  regWrite(dir_0_pin, dir);
+  regWrite(dir_1_pin, !dir);
 }
 */
 
@@ -139,12 +156,14 @@ void draw_coils() {
       case KICK_OUT:
         Serial.print("O");
         break;
+
+#define PCB_L298
       case KICK_IN:
         Serial.print("=");
         break;
-    }
-  }
+#endif
+
+    } // switch
+  } // for
   Serial.println("]");
 }
-
-
