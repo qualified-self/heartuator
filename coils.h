@@ -1,4 +1,4 @@
-#define PCB_ULN2003
+#define PCB_L298
 
 // shift regs
 const int dataPin = 13;
@@ -17,7 +17,7 @@ enum STATES {
 enum STATES {
   INACTIVE = 0,
   KICK_OUT = 1,
-  KICK_IN = 0
+  KICK_IN = 10
 };
 #endif
 
@@ -78,13 +78,13 @@ void coil_write_l298(int coil_id, int state){
 
   int sreg = coil_id >> 1; // divide by 2 to get SR address
   if ((coil_id % 2) == 0) { // use coil nr. to find choose offsets
-      dir_0_pin = (sr*8)+2; // offsets for even coils
-      dir_1_pin = (sr*8)+4;
-      onoff_pin = (sr*8)+3;
+      dir_0_pin = (sreg*8)+2; // offsets for even coils
+      dir_1_pin = (sreg*8)+4;
+      onoff_pin = (sreg*8)+3;
   } else {
-      dir_0_pin = (sr*8)+5; // offsets for odd coils
-      dir_1_pin = (sr*8)+7;
-      onoff_pin = (sr*8)+6;
+      dir_0_pin = (sreg*8)+5; // offsets for odd coils
+      dir_1_pin = (sreg*8)+7;
+      onoff_pin = (sreg*8)+6;
   }
 
  // get h-bridge pin values
@@ -157,7 +157,7 @@ void draw_coils() {
         Serial.print("O");
         break;
 
-#define PCB_L298
+#ifdef PCB_L298
       case KICK_IN:
         Serial.print("=");
         break;

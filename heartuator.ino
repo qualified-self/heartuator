@@ -13,8 +13,24 @@
   #include <OSCMessage.h>
 #endif
 
+#include <Plaquette.h>
+#include <PqExtra.h>
+
+
 #include "coils.h"
 #include "animation.h"
+
+#define INPUT_PIN A0 // change as needed
+#define STDDEV_THRESHOLD 0.9 //.0
+
+AnalogIn in(INPUT_PIN);
+AdaptiveNormalizer normalizer(0, 1);
+
+float lastreading, thisreading;
+float IBI = 0;
+unsigned long lastbeat = 0;
+unsigned long now = 0;
+
 
 // TESTED OK
 
@@ -81,6 +97,8 @@ void setup() {
     Serial.begin(115200);
     while( !Serial ) {} // wait for serial init
 
+    lastreading = thisreading = 0;
+
     init_flappy_board();
     init_animator();
 
@@ -89,7 +107,7 @@ void setup() {
 #endif
 
   Serial.println("Initializing...");
-  current = new Flutter(coils, 1000); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
+  current = new Heartbeat(coils, 100); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
 }
 
 // ANIMATION ////////////////////////////////////////////////////////////
@@ -101,14 +119,54 @@ void animation_loop() {
   if( (current != NULL)
       && (current->ready()) ) {
     current->update();
-    draw_coils();
+    //draw_coils();
   }
 
-  if(current->finished()) {
-    Serial.println("FINISHED!");
-  }
+//  if(current->finished()) {
+//    Serial.println("FINISHED!");
+//  }
 }
 
+void sensor_loop() {
+  lastreading = thisreading;
+
+  // send to normalizer
+  in >> normalizer;
+  thisreading = normalizer;
+
+  Serial.print(thisreading);
+  Serial.print(",");
+  Serial.print(STDDEV_THRESHOLD);
+  Serial.print(",");
+  if ( (lastreading < STDDEV_THRESHOLD) 
+        && (thisreading >= STDDEV_THRESHOLD) ) { //(norm > STDDEV_THRESHOLD) { // oldvalue<threshold && newvalue>=threshold){
+    Serial.print(3.0);
+
+    now = millis();
+    IBI = abs(now - lastbeat); //2 + (abs(now - lastbeat) / 1000); // IBI in seconds
+    lastbeat = now;
+
+    if(current) {
+      current->reset();
+    }
+#ifdef __BUILD_FEATHER__
+    OSCMessage out("/beat");
+    out.add(IBI);
+    
+    Udp.beginPacket(outIp, outPort);
+    out.send(Udp);
+    Udp.endPacket();
+#endif
+  } else {
+    Serial.print(.0);
+  // tip (just for fun): lines 17-20 can be replaced by this: (normalizer > STDDEV_THRESHOLD) >> led;
+  }
+
+//  Serial.print(",");
+//  Serial.print(IBI);
+  Serial.println();
+  delay(20);
+}
 
 // MESSAGE HANDLERS /////////////////////////////////////////////////////
 #ifdef __BUILD_FEATHER__
@@ -196,11 +254,12 @@ void loop() {
   animation_loop();
   // update physical coils
   update_coils();
+  sensor_loop();
 
-  if( current->finished() ) {
-    delay(2000);
-    current->reset();
-  }
+//  if( current->finished() ) {
+//    delay(2000);
+//    current->reset();
+//  }
 
 #ifdef __BUILD_FEATHER__
   // run message pump

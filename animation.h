@@ -48,8 +48,8 @@ public:
       _coils[3] = 1;
       _coils[4] = 1;
       _coils[5] = 0;
-      Serial.print("AURICULAR  in ");
-      Serial.println( millis() );
+//      Serial.print("AURICULAR  in ");
+//      Serial.println( millis() );
     } else if ( _loops == 2 ) {
       _coils[0] = 2;
       _coils[1] = 2;
@@ -57,8 +57,8 @@ public:
       _coils[3] = 2;
       _coils[4] = 2;
       _coils[5] = 1;
-      Serial.print("AURICULAR out VENTRICULAR in ");
-      Serial.println( millis() );
+//      Serial.print("AURICULAR out VENTRICULAR in ");
+//      Serial.println( millis() );
     } else if ( _loops == 3 ) {
       _coils[0] = 0;
       _coils[1] = 0;
@@ -66,12 +66,12 @@ public:
       _coils[3] = 0;
       _coils[4] = 0;
       _coils[5] = 2;
-      Serial.print("VENTRICULAR  out ");
-      Serial.println( millis() );
+//      Serial.print("VENTRICULAR  out ");
+//      Serial.println( millis() );
     } else if( _loops == 4 ) {
       _coils[0] = _coils[1] = _coils[2] = _coils[3] = _coils[4] = _coils[5] = 0;
-      Serial.print("REST ");
-      Serial.println( millis() );
+//      Serial.print("REST ");
+//      Serial.println( millis() );
     }
 
     if(_loops >= 4) { _finished = true; }
