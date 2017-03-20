@@ -30,13 +30,12 @@ int coils[COILS] = {0, 0, 0, 0, 0, 0};
 #define coil_write coil_write_uln2003
 #endif
 
-const int REGISTER_COUNT = 1;
+const int REGISTER_COUNT = 4;
 byte registerState[REGISTER_COUNT];
 
 
 void regWrite(int p, bool state) {
-  // write to shift register specific pin
-  int reg = p  / 8;  //1000 -> 0001
+  int reg = p >> 3; /// 8;
   int actualPin = p - (8 * reg);
   digitalWrite(latchPin, LOW);
   for (int i = 0; i < REGISTER_COUNT; i++) {
@@ -73,7 +72,7 @@ void coil_write_uln2003(int coil_id, int state) {
 
 
 /// @param coil_id coil number, starting at 0
-void coil_write_l298(int coil_id, int state){
+void coil_write(int coil_id, int state){
   int dir_0_pin, dir_1_pin, onoff_pin, dir, onoff;
 
   int sreg = coil_id >> 1; // divide by 2 to get SR address
@@ -89,14 +88,14 @@ void coil_write_l298(int coil_id, int state){
 
  // get h-bridge pin values
  switch( state ) {
-  case INACTIVE:
+  case 0:
     onoff = 0;
     break;
-  case KICK_OUT:
+  case 1:
     onoff = 1;
     dir = 0;
     break;
-  case KICK_IN:
+  case 2:
     onoff = 1;
     dir = 1;
     break;

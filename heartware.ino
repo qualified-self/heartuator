@@ -1,6 +1,6 @@
 // build settings change between featherboard and arduino nano
-#undef __BUILD_FEATHER__ // to switch to Arduino #undef this line...
-#define __BUILD_NANO__ // ... and #define this one
+#define __BUILD_FEATHER__ // to switch to Arduino #undef this line...
+#undef __BUILD_NANO__ // ... and #define this one
 
 #ifdef __BUILD_NANO__
 #include <Arduino.h>
@@ -13,23 +13,23 @@
   #include <OSCMessage.h>
 #endif
 
-#include <Plaquette.h>
-#include <PqExtra.h>
-
+//#include <Plaquette.h>
+//#include <PqExtra.h>
+//
 
 #include "coils.h"
 #include "animation.h"
 
-#define INPUT_PIN A0 // change as needed
-#define STDDEV_THRESHOLD 0.9 //.0
-
-AnalogIn in(INPUT_PIN);
-AdaptiveNormalizer normalizer(0, 1);
-
-float lastreading, thisreading;
-float IBI = 0;
-unsigned long lastbeat = 0;
-unsigned long now = 0;
+//#define INPUT_PIN A0 // change as needed
+//#define STDDEV_THRESHOLD 0.9 //.0
+//
+//AnalogIn in(INPUT_PIN);
+//AdaptiveNormalizer normalizer(0, 1);
+//
+//float lastreading, thisreading;
+//float IBI = 0;
+//unsigned long lastbeat = 0;
+//unsigned long now = 0;
 
 
 // TESTED OK
@@ -97,7 +97,7 @@ void setup() {
     Serial.begin(115200);
     while( !Serial ) {} // wait for serial init
 
-    lastreading = thisreading = 0;
+//    lastreading = thisreading = 0;
 
     init_flappy_board();
     init_animator();
@@ -107,7 +107,7 @@ void setup() {
 #endif
 
   Serial.println("Initializing...");
-  current = new Heartbeat(coils, 100); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
+  current = new Flutter(coils, 1000); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
 }
 
 // ANIMATION ////////////////////////////////////////////////////////////
@@ -119,14 +119,14 @@ void animation_loop() {
   if( (current != NULL)
       && (current->ready()) ) {
     current->update();
-    //draw_coils();
+    draw_coils();
   }
 
-//  if(current->finished()) {
-//    Serial.println("FINISHED!");
-//  }
+  if(current->finished()) {
+    Serial.println("FINISHED!");
+  }
 }
-
+/*
 void sensor_loop() {
   lastreading = thisreading;
 
@@ -146,9 +146,9 @@ void sensor_loop() {
     IBI = abs(now - lastbeat); //2 + (abs(now - lastbeat) / 1000); // IBI in seconds
     lastbeat = now;
 
-    if(current) {
-      current->reset();
-    }
+//    if(current) {
+//      current->reset();
+//    }
 #ifdef __BUILD_FEATHER__
     OSCMessage out("/beat");
     out.add(IBI);
@@ -167,6 +167,7 @@ void sensor_loop() {
   Serial.println();
   delay(20);
 }
+*/
 
 // MESSAGE HANDLERS /////////////////////////////////////////////////////
 #ifdef __BUILD_FEATHER__
@@ -193,17 +194,24 @@ void on_beat_single(OSCMessage &msg, int addrOffset) {
 void on_coil(OSCMessage &msg, int addrOffset) {
   if( msg.isInt(0) ) {
     coil = msg.getInt(0);
-  }
+    
+    Serial.print("beating flap #");
+    Serial.println(coil);
 
-  Serial.print("beating flap #");
-  Serial.println(coil);
-
-  coil_write(coil, KICK_OUT);
-  flapUp = true;
-  lastFlapUp = millis();
-  delay( beats[beatidx % 3] ); //beatTime );
-  beatidx++;
-  coil_write(coil, INACTIVE);
+    if( (coil > 0) && (coil < COILS) ) {
+      Serial.println("kick-out");
+      coil_write(coil, 1);
+      delay(10);
+      Serial.println("kick-in");
+      coil_write(coil, 2);
+      delay(10);
+      Serial.println("rest");
+      coil_write(coil, 0);
+      delay(10);
+    } else {
+      Serial.println("flap number out of range");
+    }
+  } // if
 }
 
 // //////////////////////////////////////////////////////////////
@@ -244,22 +252,22 @@ void loop() {
 //    out.empty();
     //delay(5);
 
-   if( (flapUp == true)
-     && ((millis() - lastFlapUp) > beatTime) ) {
-     coil_write(coil, INACTIVE);
-     flapUp = false;
-   }
+//   if( (flapUp == true)
+//     && ((millis() - lastFlapUp) > beatTime) ) {
+//     coil_write(coil, INACTIVE);
+//     flapUp = false;
+//   }
 
   // update animation sequence
   animation_loop();
   // update physical coils
   update_coils();
-  sensor_loop();
+//  sensor_loop();
 
-//  if( current->finished() ) {
+  if( current->finished() ) {
 //    delay(2000);
-//    current->reset();
-//  }
+    current->reset();
+  }
 
 #ifdef __BUILD_FEATHER__
   // run message pump

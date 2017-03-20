@@ -1,5 +1,5 @@
 const char* ssid = "otherself";
-const char* pass = "otherself";
+const char* pass = "theselfandtheother";
 
 //byte myMac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 //byte myIp[]  = { 192, 168, 0, 177 };
