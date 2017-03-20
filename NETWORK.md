@@ -68,4 +68,4 @@ The logic of this configuration is that sensors start at 150 and are number in c
 
 OSC receive port is `12345`, sensors and wearable accept OSC messages on `54321`.
 
-To change this configuration connect yourself to the "otherself" network and visit http://http://192.168.8.1/ in your browser. Text Luis for the admin password.
+To change this configuration connect yourself to the "otherself" network and visit http://192.168.8.1/ in your browser. Text Luis for the admin password.

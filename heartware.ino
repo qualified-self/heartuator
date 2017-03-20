@@ -47,6 +47,8 @@ const int beatTime = 20; // in ms
 int beats[3] = {20, 80, 60};
 int beatidx = 0;
 
+int heartware_id = -1;
+
 Animation *current = NULL;
 
 
@@ -84,7 +86,11 @@ void init_wifi() {
 
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  thisip = WiFi.localIP();
+  Serial.println( thisip );
+
+  // sensor ID is the last byte in the IP quad
+  heartware_id = thisip[3];
 
   Serial.println("Starting UDP");
   Udp.begin(localPort);
