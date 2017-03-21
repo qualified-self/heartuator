@@ -1,0 +1,1 @@
+#define ALIVE_ACK_MS 2000

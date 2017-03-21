@@ -1,3 +1,6 @@
+#include <Metro.h>
+#include "config.h"
+
 // build settings change between featherboard and arduino nano
 #define __BUILD_FEATHER__ // to switch to Arduino #undef this line...
 #undef __BUILD_NANO__ // ... and #define this one
@@ -5,6 +8,7 @@
 #ifdef __BUILD_NANO__
 #include <Arduino.h>
 #endif
+
 
 #ifdef __BUILD_FEATHER__
   #include <ESP8266WiFi.h>
@@ -19,20 +23,6 @@
 
 #include "coils.h"
 #include "animation.h"
-
-//#define INPUT_PIN A0 // change as needed
-//#define STDDEV_THRESHOLD 0.9 //.0
-//
-//AnalogIn in(INPUT_PIN);
-//AdaptiveNormalizer normalizer(0, 1);
-//
-//float lastreading, thisreading;
-//float IBI = 0;
-//unsigned long lastbeat = 0;
-//unsigned long now = 0;
-
-
-// TESTED OK
 
 #ifdef __BUILD_FEATHER__
   #include "wifisettings.h"
@@ -51,6 +41,7 @@ int heartware_id = -1;
 
 Animation *current = NULL;
 
+Metro alive(ALIVE_ACK_MS);
 
 // INIT /////////////////////////////////////////////////////////////
 /*
@@ -210,7 +201,7 @@ void on_coil(OSCMessage &msg, int addrOffset) {
       delay(10);
       Serial.println("kick-in");
       coil_write(coil, 2);
-      delay(10);
+      delay(20);
       Serial.println("rest");
       coil_write(coil, 0);
       delay(10);
@@ -233,36 +224,36 @@ void osc_message_pump() {
     }
 
     if(!in.hasError()) {
-      in.route("/wearable/sleep", on_sleep);
-      in.route("/wearable/beat", on_beat_single);
-      in.route("/wearable/coil", on_coil);
-      in.route("/wearable/scene/1", on_scene_1);
-      in.route("/wearable/scene/2", on_scene_2);
-      in.route("/wearable/scene/3", on_scene_3);
-      in.route("/wearable/scene/4", on_scene_4);
+      in.route("/heartware/sleep", on_sleep);
+      in.route("/heartware/beat", on_beat_single);
+      in.route("/heartware/coil", on_coil);
+      in.route("/heartware/scene/1", on_scene_1);
+      in.route("/heartware/scene/2", on_scene_2);
+      in.route("/heartware/scene/3", on_scene_3);
+      in.route("/heartware/scene/4", on_scene_4);
     }
 
   } // if
 }
 #endif
 
-void loop() {
-// SEND
-//    OSCMessage out("/test");
-//    out.add(123); //"hello, osc.");
-//
-//    Udp.beginPacket(outIp, outPort);
-//    out.send(Udp);
-//    Udp.endPacket();
-//
-//    out.empty();
-    //delay(5);
+void state_loop() {
 
-//   if( (flapUp == true)
-//     && ((millis() - lastFlapUp) > beatTime) ) {
-//     coil_write(coil, INACTIVE);
-//     flapUp = false;
-//   }
+  // send alive ACK message to show-control
+  if(alive.check()) {
+    OSCMessage out("/heartware/ack");
+    out.add( heartware_id );
+    Udp.beginPacket(outIp, outPort);
+    out.send(Udp);
+    Udp.endPacket();
+    out.empty();
+  }
+
+}
+
+
+void loop() {
+  state_loop();
 
   // update animation sequence
   animation_loop();
@@ -280,3 +271,4 @@ void loop() {
   osc_message_pump();
 #endif
 } // loop()
+
