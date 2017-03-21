@@ -63,22 +63,29 @@ void init_animator() {
 
 #ifdef __BUILD_FEATHER__
 void init_wifi() {
-  Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
+  _LOG();
+  _LOG();
+  if(DEBUG) {
+    Serial.print("Connecting to ");
+    Serial.println(ssid);
+  }
+  
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED) {
       delay(500);
       Serial.print(".");
   }
-  Serial.println("");
 
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
   thisip = WiFi.localIP();
-  Serial.println( thisip );
+
+  if(DEBUG) {
+    Serial.println("");
+  
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println( thisip );
+  }
 
   // sensor ID is the last byte in the IP quad
   heartware_id = thisip[3];
@@ -211,6 +218,30 @@ void on_coil(OSCMessage &msg, int addrOffset) {
   } // if
 }
 
+void on_test_pattern(OSCMessage &msg, int addrOffset) {
+
+  int latency = 10;
+  
+  if( msg.isInt(0) ) {
+    latency = msg.getInt(0);
+  }
+  
+  for(int i = 0; i < 6; i++) {
+    _LOG("coil ");
+    _LOG(i);
+    coil_write(i, 1);
+    delay( latency );
+    _LOG("kick-in");
+    coil_write(i, 2);
+    delay( latency*2 ); // nice if kick-back is x2 longer than kick-out
+    _LOG("rest");
+    coil_write(i, 0);
+    delay(latency);
+
+    delay(50);
+  }
+}
+
 // //////////////////////////////////////////////////////////////
 void osc_message_pump() {
   OSCMessage in;
@@ -225,6 +256,7 @@ void osc_message_pump() {
 
     if(!in.hasError()) {
       in.route("/heartware/sleep", on_sleep);
+      in.route("/heartware/test-pattern", on_test_pattern);
       in.route("/heartware/beat", on_beat_single);
       in.route("/heartware/coil", on_coil);
       in.route("/heartware/scene/1", on_scene_1);

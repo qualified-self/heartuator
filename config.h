@@ -1,1 +1,5 @@
 #define ALIVE_ACK_MS 2000
+
+#define DEBUG true
+
+#define _LOG(x) if(DEBUG) Serial.println(x);
