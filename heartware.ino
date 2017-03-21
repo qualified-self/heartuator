@@ -1,3 +1,6 @@
+#include <Metro.h>
+#include "config.h"
+
 // build settings change between featherboard and arduino nano
 #define __BUILD_FEATHER__ // to switch to Arduino #undef this line...
 #undef __BUILD_NANO__ // ... and #define this one
@@ -5,6 +8,7 @@
 #ifdef __BUILD_NANO__
 #include <Arduino.h>
 #endif
+
 
 #ifdef __BUILD_FEATHER__
   #include <ESP8266WiFi.h>
@@ -19,20 +23,6 @@
 
 #include "coils.h"
 #include "animation.h"
-
-//#define INPUT_PIN A0 // change as needed
-//#define STDDEV_THRESHOLD 0.9 //.0
-//
-//AnalogIn in(INPUT_PIN);
-//AdaptiveNormalizer normalizer(0, 1);
-//
-//float lastreading, thisreading;
-//float IBI = 0;
-//unsigned long lastbeat = 0;
-//unsigned long now = 0;
-
-
-// TESTED OK
 
 #ifdef __BUILD_FEATHER__
   #include "wifisettings.h"
@@ -51,6 +41,7 @@ int heartware_id = -1;
 
 Animation *current = NULL;
 
+Metro alive(ALIVE_ACK_MS);
 
 // INIT /////////////////////////////////////////////////////////////
 /*
@@ -246,23 +237,23 @@ void osc_message_pump() {
 }
 #endif
 
-void loop() {
-// SEND
-//    OSCMessage out("/test");
-//    out.add(123); //"hello, osc.");
-//
-//    Udp.beginPacket(outIp, outPort);
-//    out.send(Udp);
-//    Udp.endPacket();
-//
-//    out.empty();
-    //delay(5);
+void state_loop() {
 
-//   if( (flapUp == true)
-//     && ((millis() - lastFlapUp) > beatTime) ) {
-//     coil_write(coil, INACTIVE);
-//     flapUp = false;
-//   }
+  // send alive ACK message to show-control
+  if(alive.check()) {
+    OSCMessage out("/heartware/ack");
+    out.add( heartware_id );
+    Udp.beginPacket(outIp, outPort);
+    out.send(Udp);
+    Udp.endPacket();
+    out.empty();
+  }
+
+}
+
+
+void loop() {
+  state_loop();
 
   // update animation sequence
   animation_loop();
@@ -280,3 +271,4 @@ void loop() {
   osc_message_pump();
 #endif
 } // loop()
+
