@@ -90,10 +90,13 @@ void init_wifi() {
   // sensor ID is the last byte in the IP quad
   heartware_id = thisip[3];
 
-  Serial.println("Starting UDP");
   Udp.begin(localPort);
-  Serial.print("Local port: ");
-  Serial.println(Udp.localPort());
+
+  if(DEBUG) {
+    Serial.println("Starting UDP");
+    Serial.print("Local port: ");
+    Serial.println(Udp.localPort());
+  }
 }
 #endif
 
@@ -110,7 +113,7 @@ void setup() {
     init_wifi();
 #endif
 
-  Serial.println("Initializing...");
+  _LOG("Initializing...");
   current = new Flutter(coils, 1000); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
 }
 
@@ -126,52 +129,11 @@ void animation_loop() {
     draw_coils();
   }
 
+  // @TODO remove
   if(current->finished()) {
-    Serial.println("FINISHED!");
+    _LOG("FINISHED!");
   }
 }
-/*
-void sensor_loop() {
-  lastreading = thisreading;
-
-  // send to normalizer
-  in >> normalizer;
-  thisreading = normalizer;
-
-  Serial.print(thisreading);
-  Serial.print(",");
-  Serial.print(STDDEV_THRESHOLD);
-  Serial.print(",");
-  if ( (lastreading < STDDEV_THRESHOLD) 
-        && (thisreading >= STDDEV_THRESHOLD) ) { //(norm > STDDEV_THRESHOLD) { // oldvalue<threshold && newvalue>=threshold){
-    Serial.print(3.0);
-
-    now = millis();
-    IBI = abs(now - lastbeat); //2 + (abs(now - lastbeat) / 1000); // IBI in seconds
-    lastbeat = now;
-
-//    if(current) {
-//      current->reset();
-//    }
-#ifdef __BUILD_FEATHER__
-    OSCMessage out("/beat");
-    out.add(IBI);
-    
-    Udp.beginPacket(outIp, outPort);
-    out.send(Udp);
-    Udp.endPacket();
-#endif
-  } else {
-    Serial.print(.0);
-  // tip (just for fun): lines 17-20 can be replaced by this: (normalizer > STDDEV_THRESHOLD) >> led;
-  }
-
-//  Serial.print(",");
-//  Serial.print(IBI);
-  Serial.println();
-  delay(20);
-}
-*/
 
 // MESSAGE HANDLERS /////////////////////////////////////////////////////
 #ifdef __BUILD_FEATHER__
@@ -198,22 +160,24 @@ void on_beat_single(OSCMessage &msg, int addrOffset) {
 void on_coil(OSCMessage &msg, int addrOffset) {
   if( msg.isInt(0) ) {
     coil = msg.getInt(0);
-    
-    Serial.print("beating flap #");
-    Serial.println(coil);
+
+    if(DEBUG) {
+      Serial.print("beating flap #");
+      Serial.println(coil);
+    }
 
     if( (coil > 0) && (coil < COILS) ) {
-      Serial.println("kick-out");
+      _LOG("kick-out");
       coil_write(coil, 1);
       delay(10);
-      Serial.println("kick-in");
+      _LOG("kick-in");
       coil_write(coil, 2);
       delay(20);
-      Serial.println("rest");
+      _LOG("rest");
       coil_write(coil, 0);
       delay(10);
     } else {
-      Serial.println("flap number out of range");
+      _LOG("flap number out of range");
     }
   } // if
 }
@@ -226,7 +190,7 @@ void on_test_pattern(OSCMessage &msg, int addrOffset) {
     latency = msg.getInt(0);
   }
   
-  for(int i = 0; i < 6; i++) {
+  for(int i = 0; i < COILS; i++) {
     _LOG("coil ");
     _LOG(i);
     coil_write(i, 1);
