@@ -201,7 +201,7 @@ void on_coil(OSCMessage &msg, int addrOffset) {
       delay(10);
       Serial.println("kick-in");
       coil_write(coil, 2);
-      delay(10);
+      delay(20);
       Serial.println("rest");
       coil_write(coil, 0);
       delay(10);
@@ -224,13 +224,13 @@ void osc_message_pump() {
     }
 
     if(!in.hasError()) {
-      in.route("/wearable/sleep", on_sleep);
-      in.route("/wearable/beat", on_beat_single);
-      in.route("/wearable/coil", on_coil);
-      in.route("/wearable/scene/1", on_scene_1);
-      in.route("/wearable/scene/2", on_scene_2);
-      in.route("/wearable/scene/3", on_scene_3);
-      in.route("/wearable/scene/4", on_scene_4);
+      in.route("/heartware/sleep", on_sleep);
+      in.route("/heartware/beat", on_beat_single);
+      in.route("/heartware/coil", on_coil);
+      in.route("/heartware/scene/1", on_scene_1);
+      in.route("/heartware/scene/2", on_scene_2);
+      in.route("/heartware/scene/3", on_scene_3);
+      in.route("/heartware/scene/4", on_scene_4);
     }
 
   } // if
