@@ -1,0 +1,103 @@
+#N canvas 444 24 834 718 10;
+#X declare -lib mrpeach;
+#X obj 12 26 import mrpeach;
+#X obj 68 248 udpsend;
+#X obj 68 219 packOSC;
+#X obj 16 91 loadbang;
+#X obj 190 66 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 190 121 hradio 15 1 0 8 empty empty empty 0 -8 0 10 -262144
+-1 -1 0;
+#X msg 307 164 send /beat \$1;
+#X obj 128 219 print;
+#X obj 190 93 metro 800;
+#X obj 244 20 hsl 128 15 200 3000 0 0 empty empty empty -2 -8 0 10
+-262144 -1 -1 0 1;
+#X floatatom 278 54 10 0 0 0 - - -;
+#X msg 40 151 disconnect;
+#X obj 307 214 s msg;
+#X obj 68 189 r msg;
+#X obj 401 262 s msg;
+#X msg 441 251 send /heartware/testpattern;
+#X obj 441 288 s msg;
+#X obj 85 613 cnv 15 150 60 empty empty empty 20 12 0 14 -204786 -66577
+0;
+#X obj 93 625 tgl 15 0 empty ack empty 17 7 0 10 -262144 -1 -1 0 1
+;
+#X text 118 622 heartware ACK;
+#X msg 401 225 send /heartware/beat 2000;
+#X obj 591 36 cnv 15 200 200 empty empty test_coils 20 12 0 14 -261682
+-66577 0;
+#X obj 611 190 s msg;
+#X obj 611 124 hradio 15 1 0 6 empty empty empty 0 -8 0 10 -262144
+-1 -1 5;
+#X msg 611 153 send /heartware/coil \$1 500;
+#X obj 611 65 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 300 401 cnv 15 400 180 empty empty scenes 20 12 0 14 -232576
+-66577 0;
+#X obj 326 475 s msg;
+#X msg 326 438 send /heartware/scene/1 2000 60000;
+#X obj 370 501 s msg;
+#X msg 370 464 send /heartware/scene/2 2000 60000;
+#X obj 416 525 s msg;
+#X msg 416 488 send /heartware/scene/3 2000 60000;
+#X obj 456 549 s msg;
+#X msg 456 512 send /heartware/scene/4 2000 60000;
+#X obj 611 92 metro 2000;
+#X obj 20 440 print;
+#X obj 20 406 unpackOSC;
+#X obj 85 399 cnv 15 200 210 empty empty is_heartware_online? 20 12
+0 14 -261234 -66577 0;
+#X obj 94 438 routeOSC /heartware/ack;
+#X obj 94 465 t f;
+#X floatatom 94 492 5 0 0 0 - - -;
+#X obj 168 465 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 168 515 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X msg 168 537 0;
+#X obj 168 564 s ack;
+#X obj 94 573 s ack;
+#X msg 94 542 1;
+#X obj 94 516 select 155;
+#X obj 168 487 delay 5100;
+#X text 10 481 id of wearable -> (also last quad of its IP address)
+;
+#X msg 16 119 connect 192.168.8.155 54321;
+#X obj 20 376 udpreceive 12345;
+#X connect 2 0 1 0;
+#X connect 3 0 51 0;
+#X connect 4 0 8 0;
+#X connect 5 0 6 0;
+#X connect 6 0 12 0;
+#X connect 8 0 5 0;
+#X connect 9 0 8 1;
+#X connect 9 0 10 0;
+#X connect 11 0 1 0;
+#X connect 13 0 2 0;
+#X connect 13 0 7 0;
+#X connect 15 0 16 0;
+#X connect 20 0 14 0;
+#X connect 23 0 24 0;
+#X connect 24 0 22 0;
+#X connect 25 0 35 0;
+#X connect 28 0 27 0;
+#X connect 30 0 29 0;
+#X connect 32 0 31 0;
+#X connect 34 0 33 0;
+#X connect 35 0 23 0;
+#X connect 37 0 36 0;
+#X connect 37 0 39 0;
+#X connect 39 0 40 0;
+#X connect 40 0 41 0;
+#X connect 41 0 48 0;
+#X connect 42 0 49 0;
+#X connect 43 0 44 0;
+#X connect 44 0 45 0;
+#X connect 47 0 46 0;
+#X connect 47 0 42 0;
+#X connect 48 0 47 0;
+#X connect 49 0 43 0;
+#X connect 51 0 1 0;
+#X connect 52 0 37 0;

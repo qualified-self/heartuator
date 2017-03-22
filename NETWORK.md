@@ -2,7 +2,7 @@
 
 ### sensing
 
-Every time a heartbeat is detected this message gets sent to IP number 192.168.8.50
+Every time a heartbeat is detected this message gets sent to the show control machine.
 
 #### sends
 message | params | description
@@ -32,6 +32,7 @@ message       | format | param         |
 -------------|-------------|----------|
 /heartware/sleep | i <- millis | put ESP8266 in energy saving mode for XYZ millis
 /heartware/beat | i <- millis | run the "heartbeat" animation on the haptics (diastole, systole)
+/heartware/testpattern | i <- millis | run the testpattern on the haptics
 /heartware/coil | i <- coild id | activate the given coil in the wearable. (coil id's go from 0 to 5)
 /heartware/scene/1 | i <- millis per frame | run animation in scene 1 at XYZ millis per frame
 /heartware/scene/2 | i <- millis per frame | run animation in scene 2 at XYZ millis per frame
@@ -66,6 +67,6 @@ ip | device
 
 The logic of this configuration is that sensors start at 150 and are number in correlative order. Wearables start at 180 and are correlatively numbered. And each control machine (laptops and mini) get a multiple of 10 with any new devices in the control spectrum
 
-OSC receive port is `12345`, sensors and wearable accept OSC messages on `54321`.
+Show control listens on port `12345`, sensors and wearable accept OSC messages on `54321`.
 
 To change this configuration connect yourself to the "otherself" network and visit http://192.168.8.1/ in your browser. Text Luis for the admin password.

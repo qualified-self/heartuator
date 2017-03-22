@@ -41,7 +41,12 @@ int heartware_id = -1;
 
 Animation *current = NULL;
 
-Metro alive(ALIVE_ACK_MS);
+Heartbeat heartbeat(coils, 1000);
+LeftRight leftright(coils, 1000);
+Flutter flutter(coils, 1000);
+Random randombeat(coils, 1000);
+
+Metro alive = Metro(ALIVE_ACK_MS);
 
 // INIT /////////////////////////////////////////////////////////////
 /*
@@ -56,9 +61,7 @@ void init_flappy_board() {
 */
 
 void init_animator() {
-  // needed for animator
-  flapUp = false;
-  lastFlapUp = millis();
+//  current = new Flutter(coils, 1000); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
 }
 
 #ifdef __BUILD_FEATHER__
@@ -90,7 +93,7 @@ void init_wifi() {
   // sensor ID is the last byte in the IP quad
   heartware_id = thisip[3];
 
-  Udp.begin(localPort);
+  Udp.begin(rxport);
 
   if(DEBUG) {
     Serial.println("Starting UDP");
@@ -104,6 +107,7 @@ void setup() {
     Serial.begin(115200);
     while( !Serial ) {} // wait for serial init
 
+    _LOG("initializing...");
 //    lastreading = thisreading = 0;
 
     init_flappy_board();
@@ -112,9 +116,6 @@ void setup() {
 #ifdef __BUILD_FEATHER__
     init_wifi();
 #endif
-
-  _LOG("Initializing...");
-  current = new Flutter(coils, 1000); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
 }
 
 // ANIMATION ////////////////////////////////////////////////////////////
@@ -123,6 +124,10 @@ void animation_change(Animation *anim) {
 }
 
 void animation_loop() {
+
+  // no animation loaded, nothing to do here
+  if (current == NULL) return;
+
   if( (current != NULL)
       && (current->ready()) ) {
     current->update();
@@ -133,28 +138,42 @@ void animation_loop() {
   if(current->finished()) {
     _LOG("FINISHED!");
   }
+
+  if( current->finished() ) {
+//    delay(2000);
+    current->reset();
+  }
 }
 
 // MESSAGE HANDLERS /////////////////////////////////////////////////////
 #ifdef __BUILD_FEATHER__
 void on_sleep(OSCMessage &msg, int addrOffset) {
-  Serial.println("going to sleep to save battery...");
-  ESP.deepSleep(10 * 1000000);
+//  Serial.println("going to sleep to save battery...");
+//  ESP.deepSleep(10 * 1000000);
 }
 
 void on_scene_1(OSCMessage &msg, int addrOffset) {
+  _LOG(">> scene 1");
+  animation_change((Animation *)&heartbeat);
 }
 
 void on_scene_2(OSCMessage &msg, int addrOffset) {
+  _LOG(">> scene 2");
+  animation_change((Animation *)&leftright);
 }
 
 void on_scene_3(OSCMessage &msg, int addrOffset) {
+  _LOG(">> scene 3");
+  animation_change((Animation *)&flutter);
 }
 
 void on_scene_4(OSCMessage &msg, int addrOffset) {
+  _LOG(">> scene 4");
+  animation_change((Animation *)&randombeat);
 }
 
 void on_beat_single(OSCMessage &msg, int addrOffset) {
+  _LOG(">> BEAT!");
 }
 
 void on_coil(OSCMessage &msg, int addrOffset) {
@@ -166,7 +185,7 @@ void on_coil(OSCMessage &msg, int addrOffset) {
       Serial.println(coil);
     }
 
-    if( (coil > 0) && (coil < COILS) ) {
+    if( (coil >= 0) && (coil < COILS) ) {
       _LOG("kick-out");
       coil_write(coil, 1);
       delay(10);
@@ -184,6 +203,8 @@ void on_coil(OSCMessage &msg, int addrOffset) {
 
 void on_test_pattern(OSCMessage &msg, int addrOffset) {
 
+  _LOG(">> test pattern");
+  
   int latency = 10;
   
   if( msg.isInt(0) ) {
@@ -220,7 +241,7 @@ void osc_message_pump() {
 
     if(!in.hasError()) {
       in.route("/heartware/sleep", on_sleep);
-      in.route("/heartware/test-pattern", on_test_pattern);
+      in.route("/heartware/testpattern", on_test_pattern);
       in.route("/heartware/beat", on_beat_single);
       in.route("/heartware/coil", on_coil);
       in.route("/heartware/scene/1", on_scene_1);
@@ -237,9 +258,10 @@ void state_loop() {
 
   // send alive ACK message to show-control
   if(alive.check()) {
+    _LOG("-> ACK");
     OSCMessage out("/heartware/ack");
     out.add( heartware_id );
-    Udp.beginPacket(outIp, outPort);
+    Udp.beginPacket(dest, txport);
     out.send(Udp);
     Udp.endPacket();
     out.empty();
@@ -256,11 +278,6 @@ void loop() {
   // update physical coils
   update_coils();
 //  sensor_loop();
-
-  if( current->finished() ) {
-//    delay(2000);
-    current->reset();
-  }
 
 #ifdef __BUILD_FEATHER__
   // run message pump

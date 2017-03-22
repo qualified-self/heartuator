@@ -1,4 +1,4 @@
-#define ALIVE_ACK_MS 2000
+#define ALIVE_ACK_MS 5000
 
 #define DEBUG true
 
