@@ -4,6 +4,8 @@ public:
   int _metronome;
   int *_coils;
   bool _finished;
+  bool _loop;
+  unsigned long _lastUpdate;
 
   Animation(int *coils) : _coils(coils) {}
 
@@ -20,6 +22,20 @@ public:
     }
   }
 
+  void frame(int ms) {
+    this->_metronome = ms;
+//    Serial.print("<- frame speed =  ");
+//    Serial.println(this->_metronome);
+  }
+
+  void set_loop(int binary) {
+    _loop = binary;
+  }
+
+  int must_loop() {
+    return _loop;
+  }
+
   int push(int val) {
     val++;
     if( val > 2 ) val = 0;
@@ -31,10 +47,8 @@ public:
 class Heartbeat : public Animation {
 public:
   int _loops;
-  int _metronome;
-  unsigned long _lastUpdate;
 
-  Heartbeat(int *coils, int interval) : Animation(coils), _metronome(interval) {
+  Heartbeat(int *coils) : Animation(coils) {
     _loops = 0;
   }
 
@@ -92,10 +106,8 @@ public:
 class LeftRight : public Animation {
 public:
   int _loops;
-  int _metronome;
-  unsigned long _lastUpdate;
 
-  LeftRight(int *coils, int interval) : Animation(coils), _metronome(interval) {
+  LeftRight(int *coils) : Animation(coils) {
     _loops = 0;
   }
 
@@ -109,8 +121,8 @@ public:
       _coils[3] = 0;
       _coils[4] = 0;
       _coils[5] = 0;
-      Serial.print("RL A ");
-      Serial.println( millis() );
+//      Serial.print("RL A ");
+//      Serial.println( millis() );
     } else if ( _loops == 2 ) {
       _coils[0] = 2;
       _coils[1] = 2;
@@ -118,8 +130,8 @@ public:
       _coils[3] = 0;
       _coils[4] = 0;
       _coils[5] = 0;
-      Serial.print("RL B ");
-      Serial.println( millis() );
+//      Serial.print("RL B ");
+//      Serial.println( millis() );
     } else if ( _loops == 3 ) {
       _coils[0] = 0;
       _coils[1] = 0;
@@ -127,8 +139,8 @@ public:
       _coils[3] = 0;
       _coils[4] = 0;
       _coils[5] = 0;
-      Serial.print("RL C ");
-      Serial.println( millis() );
+//      Serial.print("RL C ");
+//      Serial.println( millis() );
     } else if ( _loops == 4 ) {
       _coils[0] = 0;
       _coils[1] = 0;
@@ -136,8 +148,8 @@ public:
       _coils[3] = 1;
       _coils[4] = 1;
       _coils[5] = 0;
-      Serial.print("RL D ");
-      Serial.println( millis() );
+//      Serial.print("RL D ");
+//      Serial.println( millis() );
     } else if( _loops == 5 ) {
       _coils[0] = 0;
       _coils[1] = 0;
@@ -145,8 +157,8 @@ public:
       _coils[3] = 2;
       _coils[4] = 2;
       _coils[5] = 1;
-      Serial.print("RL E ");
-      Serial.println( millis() );
+//      Serial.print("RL E ");
+//      Serial.println( millis() );
     } else if( _loops == 6 ) {
       _coils[0] = 0;
       _coils[1] = 0;
@@ -154,12 +166,12 @@ public:
       _coils[3] = 0;
       _coils[4] = 0;
       _coils[5] = 2;
-      Serial.print("RL C ");
-      Serial.println( millis() );
+//      Serial.print("RL C ");
+//      Serial.println( millis() );
     } else if( _loops == 7 ) {
       _coils[0] = _coils[1] = _coils[2] = _coils[3] = _coils[4] = _coils[5] = 0;
-      Serial.print("REST ");
-      Serial.println( millis() );
+//      Serial.print("REST ");
+//      Serial.println( millis() );
     }
 
     if(_loops >= 7) { _finished = true; }
@@ -179,7 +191,7 @@ public:
 // /////////////////////////////////////////////////////////////////////////////////
 class None : public Animation {
 public:
-  None(int *coils, int interval) : Animation(coils) {
+  None(int *coils) : Animation(coils) {
   }
 
   void update() {
@@ -200,10 +212,8 @@ class Flutter : public Animation {
 public:
   int _index;
   int _direction;
-  int _metronome;
-  unsigned long _lastUpdate;
 
-  Flutter(int *coils, int interval) : Animation(coils), _metronome(interval) {
+  Flutter(int *coils) : Animation(coils) {
     //_loops = 0;
     _index = 0;
     _direction = 1;
@@ -211,6 +221,9 @@ public:
 
   void update() {
     clear();
+
+    // check if animation is finished
+    if( (_index == 0) && (_direction < 0) && (_loop == false) ) { _finished = true; }
 
     int _prev = 0; // the coil before the current one
     
@@ -229,7 +242,7 @@ public:
     _coils[_prev] = 2; // kick current flap out
 
     _index += _direction;
-    if( (_index < 0) || (_index > COILS) ) {
+    if( (_index < 0) || (_index >= COILS) ) {
       _direction *= -1; // change direction
     }
 
@@ -251,10 +264,8 @@ class Random : public Animation {
 public:
   int _index;
   int _prev;
-  int _metronome;
-  unsigned long _lastUpdate;
 
-  Random(int *coils, int interval) : Animation(coils), _metronome(interval) {
+  Random(int *coils) : Animation(coils) {
     _index = 0;
   }
 
