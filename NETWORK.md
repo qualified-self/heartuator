@@ -7,6 +7,7 @@ Every time a heartbeat is detected this message gets sent to the show control ma
 #### sends
 message | params | description
 -------------|-------------|----------|
+/oximeter/ack | i <- id | sensor sends this every 5s to notify that it is alive
 /oximeter/beat | i <- id<br/>i <- IBI (miliseconds since last beat) | heartbeat detected
 
 #### receives
