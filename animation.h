@@ -4,6 +4,7 @@ public:
   int _metronome;
   int *_coils;
   bool _finished;
+  bool _loop;
 
   Animation(int *coils) : _coils(coils) {}
 
@@ -20,6 +21,20 @@ public:
     }
   }
 
+  void frame(int ms) {
+    this->_metronome = ms;
+    Serial.print("<- frame speed =  ");
+    Serial.println(this->_metronome);
+  }
+
+  void set_loop(int binary) {
+    _loop = binary;
+  }
+
+  int must_loop() {
+    return _loop;
+  }
+
   int push(int val) {
     val++;
     if( val > 2 ) val = 0;
@@ -34,7 +49,7 @@ public:
   int _metronome;
   unsigned long _lastUpdate;
 
-  Heartbeat(int *coils, int interval) : Animation(coils), _metronome(interval) {
+  Heartbeat(int *coils) : Animation(coils), _metronome(1000) {
     _loops = 0;
   }
 
@@ -95,7 +110,7 @@ public:
   int _metronome;
   unsigned long _lastUpdate;
 
-  LeftRight(int *coils, int interval) : Animation(coils), _metronome(interval) {
+  LeftRight(int *coils) : Animation(coils), _metronome(1000) {
     _loops = 0;
   }
 
@@ -179,7 +194,7 @@ public:
 // /////////////////////////////////////////////////////////////////////////////////
 class None : public Animation {
 public:
-  None(int *coils, int interval) : Animation(coils) {
+  None(int *coils) : Animation(coils) {
   }
 
   void update() {
@@ -203,7 +218,7 @@ public:
   int _metronome;
   unsigned long _lastUpdate;
 
-  Flutter(int *coils, int interval) : Animation(coils), _metronome(interval) {
+  Flutter(int *coils) : Animation(coils), _metronome(1000) {
     //_loops = 0;
     _index = 0;
     _direction = 1;
@@ -229,7 +244,7 @@ public:
     _coils[_prev] = 2; // kick current flap out
 
     _index += _direction;
-    if( (_index < 0) || (_index > COILS) ) {
+    if( (_index < 0) || (_index >= COILS) ) {
       _direction *= -1; // change direction
     }
 
@@ -254,7 +269,7 @@ public:
   int _metronome;
   unsigned long _lastUpdate;
 
-  Random(int *coils, int interval) : Animation(coils), _metronome(interval) {
+  Random(int *coils) : Animation(coils), _metronome(1000) {
     _index = 0;
   }
 

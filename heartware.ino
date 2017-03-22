@@ -41,10 +41,10 @@ int heartware_id = -1;
 
 Animation *current = NULL;
 
-Heartbeat heartbeat(coils, 1000);
-LeftRight leftright(coils, 1000);
-Flutter flutter(coils, 1000);
-Random randombeat(coils, 1000);
+Heartbeat heartbeat(coils);
+LeftRight leftright(coils);
+Flutter flutter(coils);
+Random randombeat(coils);
 
 Metro alive = Metro(ALIVE_ACK_MS);
 
@@ -124,7 +124,6 @@ void animation_change(Animation *anim) {
 }
 
 void animation_loop() {
-
   // no animation loaded, nothing to do here
   if (current == NULL) return;
 
@@ -139,8 +138,7 @@ void animation_loop() {
     _LOG("FINISHED!");
   }
 
-  if( current->finished() ) {
-//    delay(2000);
+  if( current->finished() && current->must_loop() ) {
     current->reset();
   }
 }
@@ -153,21 +151,41 @@ void on_sleep(OSCMessage &msg, int addrOffset) {
 }
 
 void on_scene_1(OSCMessage &msg, int addrOffset) {
+  if( msg.isInt(0) ) {
+    int freq = msg.getInt(0);
+    heartbeat.frame( freq );
+  }
+
   _LOG(">> scene 1");
   animation_change((Animation *)&heartbeat);
 }
 
 void on_scene_2(OSCMessage &msg, int addrOffset) {
+  if( msg.isInt(0) ) {
+    int freq = msg.getInt(0);
+    leftright.frame( freq );
+  }
+
   _LOG(">> scene 2");
   animation_change((Animation *)&leftright);
 }
 
 void on_scene_3(OSCMessage &msg, int addrOffset) {
+  if( msg.isInt(0) ) {
+    int freq = msg.getInt(0);
+    flutter.frame( freq );
+  }
+
   _LOG(">> scene 3");
   animation_change((Animation *)&flutter);
 }
 
 void on_scene_4(OSCMessage &msg, int addrOffset) {
+  if( msg.isInt(0) ) {
+    int freq = msg.getInt(0);
+    randombeat.frame( freq );
+  }
+
   _LOG(">> scene 4");
   animation_change((Animation *)&randombeat);
 }
@@ -202,6 +220,9 @@ void on_coil(OSCMessage &msg, int addrOffset) {
 }
 
 void on_test_pattern(OSCMessage &msg, int addrOffset) {
+
+  // deactivate any animation
+  current = NULL;
 
   _LOG(">> test pattern");
   
