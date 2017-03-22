@@ -133,10 +133,10 @@ void animation_loop() {
     draw_coils();
   }
 
-  // @TODO remove
-  if(current->finished()) {
-    _LOG("FINISHED!");
-  }
+//  // @TODO remove
+//  if(current->finished()) {
+//    _LOG("FINISHED!");
+//  }
 
   if( current->finished() && current->must_loop() ) {
     current->reset();
@@ -157,6 +157,7 @@ void on_scene_1(OSCMessage &msg, int addrOffset) {
   }
 
   _LOG(">> scene 1");
+  heartbeat.reset();
   animation_change((Animation *)&heartbeat);
 }
 
@@ -167,6 +168,7 @@ void on_scene_2(OSCMessage &msg, int addrOffset) {
   }
 
   _LOG(">> scene 2");
+  leftright.reset();
   animation_change((Animation *)&leftright);
 }
 
@@ -177,6 +179,7 @@ void on_scene_3(OSCMessage &msg, int addrOffset) {
   }
 
   _LOG(">> scene 3");
+  flutter.reset();
   animation_change((Animation *)&flutter);
 }
 
@@ -187,6 +190,7 @@ void on_scene_4(OSCMessage &msg, int addrOffset) {
   }
 
   _LOG(">> scene 4");
+  randombeat.reset();
   animation_change((Animation *)&randombeat);
 }
 
@@ -279,7 +283,7 @@ void state_loop() {
 
   // send alive ACK message to show-control
   if(alive.check()) {
-    _LOG("-> ACK");
+//    _LOG("-> ACK");
     OSCMessage out("/heartware/ack");
     out.add( heartware_id );
     Udp.beginPacket(dest, txport);

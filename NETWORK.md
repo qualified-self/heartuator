@@ -31,11 +31,10 @@ message | params | description
 
 message       | format | param         |
 -------------|-------------|----------|
-/heartware/sleep | i <- millis | put ESP8266 in energy saving mode for XYZ millis
 /heartware/beat | i <- millis | run the "heartbeat" animation on the haptics (diastole, systole)
 /heartware/testpattern | i <- millis | run the testpattern on the haptics
-/heartware/coil | i <- coild id | activate the given coil in the wearable. (coil id's go from 0 to 5)
-/heartware/scene/1 | i <- millis per frame | run animation in scene 1 at XYZ millis per frame
+/heartware/coil | i <- coild id, i <- milliseconds | activate the given coil in the wearable. (coil id's go from 0 to 5)
+/heartware/scene/1 | i <- millis per frame, [0,1] <- loop [yes, no] | run animation in scene 1 at XYZ millis per frame
 /heartware/scene/2 | i <- millis per frame | run animation in scene 2 at XYZ millis per frame
 /heartware/scene/3 | i <- millis per frame | run animation in scene 3 at XYZ millis per frame
 /heartware/scene/4 | i <- millis per frame | run animation in scene 4 at XYZ millis per frame
