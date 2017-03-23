@@ -151,8 +151,10 @@ void on_sleep(OSCMessage &msg, int addrOffset) {
 }
 
 void on_scene_1(OSCMessage &msg, int addrOffset) {
-  if( msg.isInt(0) ) {
+  if( msg.isInt(0) && msg.isInt(1) ) {
     int freq = msg.getInt(0);
+    int repeat = msg.getInt(1);
+    heartbeat.set_loop( repeat );
     heartbeat.frame( freq );
   }
 
@@ -162,8 +164,10 @@ void on_scene_1(OSCMessage &msg, int addrOffset) {
 }
 
 void on_scene_2(OSCMessage &msg, int addrOffset) {
-  if( msg.isInt(0) ) {
+  if( msg.isInt(0) && msg.isInt(1) ) {
     int freq = msg.getInt(0);
+    int repeat = msg.getInt(1);
+    leftright.set_loop( repeat );
     leftright.frame( freq );
   }
 
@@ -175,6 +179,8 @@ void on_scene_2(OSCMessage &msg, int addrOffset) {
 void on_scene_3(OSCMessage &msg, int addrOffset) {
   if( msg.isInt(0) ) {
     int freq = msg.getInt(0);
+    int repeat = msg.getInt(1);
+    flutter.set_loop( repeat );
     flutter.frame( freq );
   }
 
@@ -186,6 +192,8 @@ void on_scene_3(OSCMessage &msg, int addrOffset) {
 void on_scene_4(OSCMessage &msg, int addrOffset) {
   if( msg.isInt(0) ) {
     int freq = msg.getInt(0);
+    int repeat = msg.getInt(1);
+    randombeat.set_loop( repeat );
     randombeat.frame( freq );
   }
 
@@ -199,6 +207,7 @@ void on_stop(OSCMessage &msg, int addrOffset) {
   current = NULL;
   reset_coils();
   update_coils();
+  draw_coils();
 }
 
 
@@ -294,7 +303,7 @@ void state_loop() {
 
   // send alive ACK message to show-control
   if(alive.check()) {
-//    _LOG("-> ACK");
+    _LOG("-> ACK");
     OSCMessage out("/heartware/ack");
     out.add( heartware_id );
     Udp.beginPacket(dest, txport);

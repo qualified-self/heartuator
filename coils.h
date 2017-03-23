@@ -141,7 +141,7 @@ void coil_write_l298(int coil_id, int state){
 
 void reset_coils() {
   for(int i = 0; i < COILS; i++) {
-    coil_write(i, 0);
+    coils[i] = 0;
   }
 }
 

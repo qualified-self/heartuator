@@ -24,8 +24,6 @@ public:
 
   void frame(int ms) {
     this->_metronome = ms;
-//    Serial.print("<- frame speed =  ");
-//    Serial.println(this->_metronome);
   }
 
   void set_loop(int binary) {
@@ -88,7 +86,8 @@ public:
 //      Serial.println( millis() );
     }
 
-    if(_loops >= 4) { _finished = true; }
+    if( (_loops >= 4) ) { _finished = true; }
+
     _lastUpdate = millis();
   }
 
@@ -174,7 +173,8 @@ public:
 //      Serial.println( millis() );
     }
 
-    if(_loops >= 7) { _finished = true; }
+    if( (_loops >= 7) ) { _finished = true; }
+
     _lastUpdate = millis();
   }
 
