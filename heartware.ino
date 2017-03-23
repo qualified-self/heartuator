@@ -194,13 +194,23 @@ void on_scene_4(OSCMessage &msg, int addrOffset) {
   animation_change((Animation *)&randombeat);
 }
 
+void on_stop(OSCMessage &msg, int addrOffset) {
+  _LOG(">> stop");
+  current = NULL;
+  reset_coils();
+  update_coils();
+}
+
+
 void on_beat_single(OSCMessage &msg, int addrOffset) {
   _LOG(">> BEAT!");
 }
 
 void on_coil(OSCMessage &msg, int addrOffset) {
-  if( msg.isInt(0) ) {
-    coil = msg.getInt(0);
+  int ftime;
+  if( msg.isInt(0) && (msg.isInt(1)) ) {
+    coil  = msg.getInt(0);
+    ftime = msg.getInt(1);
 
     if(DEBUG) {
       Serial.print("beating flap #");
@@ -210,13 +220,13 @@ void on_coil(OSCMessage &msg, int addrOffset) {
     if( (coil >= 0) && (coil < COILS) ) {
       _LOG("kick-out");
       coil_write(coil, 1);
-      delay(10);
+      delay(ftime);
       _LOG("kick-in");
       coil_write(coil, 2);
-      delay(20);
+      delay(ftime*2);
       _LOG("rest");
       coil_write(coil, 0);
-      delay(10);
+      delay(ftime);
     } else {
       _LOG("flap number out of range");
     }
@@ -273,6 +283,7 @@ void osc_message_pump() {
       in.route("/heartware/scene/2", on_scene_2);
       in.route("/heartware/scene/3", on_scene_3);
       in.route("/heartware/scene/4", on_scene_4);
+      in.route("/heartware/stop", on_stop);
     }
 
   } // if
