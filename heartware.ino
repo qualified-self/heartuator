@@ -45,21 +45,11 @@ Heartbeat heartbeat(coils);
 LeftRight leftright(coils);
 Flutter flutter(coils);
 Random randombeat(coils);
+Introvert introvert(coils);
 
 Metro alive = Metro(ALIVE_ACK_MS);
 
 // INIT /////////////////////////////////////////////////////////////
-/*
-void init_flappy_board() {
-  pinMode(latchPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-
-  flapUp = false;
-  lastFlapUp = millis();
-}
-*/
-
 void init_animator() {
 //  current = new Flutter(coils, 1000); //new LeftRight(coils, 120); //Heartbeat(coils, 120);
 }
@@ -133,11 +123,6 @@ void animation_loop() {
     draw_coils();
   }
 
-//  // @TODO remove
-//  if(current->finished()) {
-//    _LOG("FINISHED!");
-//  }
-
   if( current->finished() && current->must_loop() ) {
     current->reset();
   }
@@ -200,6 +185,19 @@ void on_scene_4(OSCMessage &msg, int addrOffset) {
   _LOG(">> scene 4");
   randombeat.reset();
   animation_change((Animation *)&randombeat);
+}
+
+void on_scene_5(OSCMessage &msg, int addrOffset) {
+  if( msg.isInt(0) ) {
+    int freq = msg.getInt(0);
+    int repeat = msg.getInt(1);
+    introvert.set_loop( repeat );
+    introvert.frame( freq );
+  }
+
+  _LOG(">> scene 5");
+  introvert.reset();
+  animation_change((Animation *)&introvert);
 }
 
 void on_stop(OSCMessage &msg, int addrOffset) {
@@ -292,6 +290,7 @@ void osc_message_pump() {
       in.route("/heartware/scene/2", on_scene_2);
       in.route("/heartware/scene/3", on_scene_3);
       in.route("/heartware/scene/4", on_scene_4);
+      in.route("/heartware/scene/5", on_scene_5);
       in.route("/heartware/stop", on_stop);
     }
 

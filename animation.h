@@ -42,6 +42,54 @@ public:
 };
 
 // /////////////////////////////////////////////////////////////////////////////////
+class Introvert : public Animation {
+public:
+  int _loops;
+
+  Introvert(int *coils) : Animation(coils) {
+    _loops = 0;
+  }
+
+  void update() {
+    _loops++;
+
+    if( _loops == 1 ) {
+      _coils[0] = 1;
+      _coils[1] = 1;
+      _coils[2] = 0;
+      _coils[3] = 1;
+      _coils[4] = 1;
+      _coils[5] = 0;
+    } else if ( _loops == 2 ) {
+      _coils[0] = 0;
+      _coils[1] = 0;
+      _coils[2] = 1;
+      _coils[3] = 0;
+      _coils[4] = 0;
+      _coils[5] = 1;
+    } else if ( _loops == 3 ) {
+      _coils[0] = _coils[1] = _coils[2] = _coils[3] = _coils[4] = _coils[5] = 1;
+    } else if( _loops == 4 ) {
+      _coils[0] = _coils[1] = _coils[2] = _coils[3] = _coils[4] = _coils[5] = 0;
+    }
+
+    if( (_loops >= 4) ) { _finished = true; }
+
+    _lastUpdate = millis();
+  }
+
+  virtual void reset() { 
+    _finished = false; 
+    _loops = 0; 
+  }
+
+  bool ready() {
+    return (!_finished) && (millis() > (_lastUpdate + _metronome));
+  }
+};
+
+
+// /////////////////////////////////////////////////////////////////////////////////
 class Heartbeat : public Animation {
 public:
   int _loops;
