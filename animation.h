@@ -339,4 +339,38 @@ public:
   }
 };
 
+// ///////////////////////////////////////////////////////////////////////////
+class DemoMode : public Heartbeat {
+  unsigned long _lastPause;
+  unsigned long _pauseDuration;
+  bool _paused;
+
+public:
+  DemoMode(int *coils) : Heartbeat(coils) {
+  }
+
+  virtual void reset() { 
+    _paused = true;
+    _lastPause = millis();
+    _pauseDuration = random(780, 1100);
+    Serial.print("Pausing for ");
+    Serial.print(_pauseDuration);
+    Serial.println("ms");
+    _finished = false; 
+    _loops = 0; 
+  }
+
+  bool ready() {
+    //
+    // demo-mode does an irregular heartbeat indefinitely
+    //
+    if( (_paused) && (_lastPause + _pauseDuration) > millis() ) {
+      return false;
+    } else {
+      _paused = false;
+      return (!_finished) && (millis() > (_lastUpdate + _metronome));
+    }
+  } // ready()
+
+};
 

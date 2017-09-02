@@ -31,6 +31,10 @@
 bool flapUp = false;
 unsigned long lastFlapUp = 0;
 
+bool msgReceived = false;
+bool modeDemo = false;
+unsigned long lastMsgReceived = 0;
+
 int coil = 0;
 
 const int beatTime = 20; // in ms
@@ -46,8 +50,10 @@ LeftRight leftright(coils);
 Flutter flutter(coils);
 Random randombeat(coils);
 Introvert introvert(coils);
+DemoMode demo(coils);
 
 Metro alive = Metro(ALIVE_ACK_MS);
+Metro tout_demo = Metro(DEMO_TIMEOUT_MS);
 
 // INIT /////////////////////////////////////////////////////////////
 void init_animator() {
@@ -62,34 +68,46 @@ void init_wifi() {
     Serial.print("Connecting to ");
     Serial.println(ssid);
   }
+
+  unsigned long tstampBegin = millis();
   
   WiFi.begin(ssid, pass);
 
-  while (WiFi.status() != WL_CONNECTED) {
+  while ( (WiFi.status() != WL_CONNECTED) && (millis() < tstampBegin + WIFI_TIMEOUT) ) {
       delay(500);
       Serial.print(".");
   }
 
-  thisip = WiFi.localIP();
-
-  if(DEBUG) {
-    Serial.println("");
+  if((WiFi.status() == WL_CONNECTED)) {
+    thisip = WiFi.localIP();
   
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println( thisip );
+    if(DEBUG) {
+      Serial.println("");
+    
+      Serial.println("WiFi connected");
+      Serial.println("IP address: ");
+      Serial.println( thisip );
+    }
+  
+    // sensor ID is the last byte in the IP quad
+    heartware_id = thisip[3];
+  
+    Udp.begin(rxport);
+  
+    if(DEBUG) {
+      Serial.println("Starting UDP");
+      Serial.print("Local port: ");
+      Serial.println(Udp.localPort());
+    }
+  } else {
+    //
+    // if we couldn't connect to WiFi, then just go into demo mode
+    //
+    Serial.println("Connecting to WiFi probably timedout, moving on.");
+    heartware_id = 5555; // give the ID a fixed value
+    on_demo_mode();
   }
-
-  // sensor ID is the last byte in the IP quad
-  heartware_id = thisip[3];
-
-  Udp.begin(rxport);
-
-  if(DEBUG) {
-    Serial.println("Starting UDP");
-    Serial.print("Local port: ");
-    Serial.println(Udp.localPort());
-  }
+  
 }
 #endif
 
@@ -114,6 +132,12 @@ void animation_change(Animation *anim) {
 }
 
 void animation_loop() {
+//  // check if we have to go onto demo mode
+//  if( tout_demo.check() && !msgReceived && !modeDemo ) {
+//    // activate demo mode
+//    on_demo_mode();
+//  }
+
   // no animation loaded, nothing to do here
   if (current == NULL) return;
 
@@ -159,6 +183,15 @@ void on_scene_2(OSCMessage &msg, int addrOffset) {
   _LOG(">> scene 2");
   leftright.reset();
   animation_change((Animation *)&leftright);
+}
+
+void on_demo_mode() {
+  _LOG(">> demo mode");
+  modeDemo = true;
+  demo.frame( 50 );
+  demo.set_loop( true );
+  demo.reset();
+  animation_change((Animation *)&demo);
 }
 
 void on_scene_3(OSCMessage &msg, int addrOffset) {
@@ -282,6 +315,9 @@ void osc_message_pump() {
     }
 
     if(!in.hasError()) {
+      // if we had never received a message before, make sure we set the flag to avoid triggering 'demo mode'
+      if(!msgReceived) { msgReceived = true; }
+ 
       in.route("/heartware/sleep", on_sleep);
       in.route("/heartware/testpattern", on_test_pattern);
       in.route("/heartware/beat", on_beat_single);
@@ -299,7 +335,6 @@ void osc_message_pump() {
 #endif
 
 void state_loop() {
-
   // send alive ACK message to show-control
   if(alive.check()) {
     _LOG("-> ACK");
@@ -310,7 +345,6 @@ void state_loop() {
     Udp.endPacket();
     out.empty();
   }
-
 }
 
 
